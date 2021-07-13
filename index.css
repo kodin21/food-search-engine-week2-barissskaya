@@ -1,0 +1,90 @@
+body {
+    background-color: #fdeddb;
+    font-family: Arial, Helvetica, sans-serif;
+    padding-top: 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.container input {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 1.5em;
+    text-indent: 1rem;
+}
+
+#foodContainer {
+    margin-top: 3rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#foodContainer>.card {
+    width: 286px;
+    background: #f1fffe;
+    margin: 5px;
+    border: 1px solid rgb(226, 226, 226);
+    border-radius: 7px;
+}
+
+.card>.cardHeader,
+.card>.cardBody {
+    padding: 3px 10px;
+    font-size: .8rem;
+}
+
+.card .addFavButton {
+    padding: 10px;
+    width: 100%;
+    display: none;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+}
+
+.addFavButton.danger {
+    background: #ff1b1b;
+}
+
+.addFavButton.danger:hover {
+    background: #f11313;
+}
+
+.addFavButton.success {
+    background: #19ce4f;
+}
+
+.addFavButton.success:hover {
+    background: #05c13d;
+}
+
+#foodContainer.showCardDetail>.card {
+    opacity: 0.1;
+}
+
+#foodContainer>.card.active {
+    position: fixed;
+    width: 500px;
+    top: 10%;
+    left: 50%;
+    margin-left: -250px;
+    opacity: 1;
+    padding-bottom: 10px;
+    z-index: 1000;
+    padding: 3rem;
+}
+
+#foodContainer>.card.active .cardHeader {
+    text-align: center;
+    font-size: 1.5em;
+    line-height: 1.6em;
+}
+
+#foodContainer>.card.active .addFavButton {
+    display: block;
+}

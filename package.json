@@ -5,11 +5,14 @@
     "repository": "https://github.com/kodin21/week1-homework.git",
     "author": "Berkay Aydın <sbayd06@gmail.com>",
     "license": "MIT",
+    "type": "module",
     "scripts": {
-      "start": "parcel index.html"
+        "start": "parcel index.html"
     },
     "devDependencies": {
-      "parcel-bundler": "^1.12.5"
+        "parcel-bundler": "^1.12.5"
+    },
+    "dependencies": {
+        "fuse.js": "^6.4.6"
     }
-  }
-  
+}
