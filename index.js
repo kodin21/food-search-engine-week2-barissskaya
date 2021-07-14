@@ -1,38 +1,37 @@
 class Food {
     constructor() {
+        // yemek listesi
         this.foods = [];
+        // favorilere eklenen yemeklerin id numaraları
         this.favFoodsIdList = [];
-        this.activeCardDom = "";
+        // Seçilen karta ait bilgiler
+        this.activeCard = {
+            dom: "",
+            id: 0
+        }
         this.hasActiveCard = false;
         this.createFoodRoot();
+        // Giriş Yapmış Kullanıcı Bilgilerini Al.
         this.getUserInfo();
+        // Yemek Listesini AL.
         this.getFoodList();
+        // localStorage'e kaydedilmiş favorileri oku.
+        this.readFavFoodIdListFromStorage();
     }
-    createFoodCard({ id, title, isFav }) {
+    createFoodCard({ id, title }) {
         const card = document.createElement('div');
         const cardHeader = document.createElement('div');
         const cardBody = document.createElement('div');
         const cardFooter = document.createElement('div');
-        const favButton = document.createElement('button');
         const headerTitle = document.createElement('h4');
         card.classList.add('card');
-        card.setAttribute("data-id", id);
 
         cardHeader.classList.add('cardHeader');
         cardBody.classList.add('cardBody');
         cardFooter.classList.add('cardFooter');
-        favButton.classList.add('addFavButton');
 
-        if (isFav) {
-            favButton.innerText = 'Favorilerden Çıkar';
-            favButton.classList.add('danger');
-        } else {
-            favButton.innerText = 'Favorilere Ekle';
-            favButton.classList.add('success');
-        }
         headerTitle.innerText = title;
         cardHeader.appendChild(headerTitle);
-        cardBody.appendChild(favButton);
         card.appendChild(cardHeader);
         card.appendChild(cardBody);
         card.appendChild(cardFooter);
@@ -41,13 +40,12 @@ class Food {
 
         card.addEventListener("click", (e) => {
             e.stopPropagation();
-            const activeCard = document.querySelector(".card.active");
-            if (activeCard === null) {
+            if (!this.hasOpenedCard()) {
                 foodContainer.classList.add('showCardDetail');
                 var target = e.target;
                 while (target) {
                     if (target.className === 'card') {
-                        this.makeActiveCurrentCard(target);
+                        this.makeActiveCurrentCard(target, id);
                         break;
                     } else {
                         target = target.parentNode;
@@ -56,11 +54,6 @@ class Food {
             } else {
                 this.disableActiveCard();
             }
-        });
-
-        favButton.addEventListener("click", (e) => {
-            e.stopPropagation();
-            console.log('clicked button')
         });
     }
     createFoodRoot() {
@@ -76,8 +69,17 @@ class Food {
         root.appendChild(searchInputDom);
         root.appendChild(foodContainer);
 
-        searchInputDom.addEventListener("keydown", (e) => {
+        searchInputDom.addEventListener("keyup", (e) => {
             e.stopPropagation();
+            let inputVal = e.target.value;
+            if (inputVal.length > 0) {
+                this.resetFoodContainer();
+                this.foods.forEach(food => {
+                    if (food.title.indexOf(inputVal) > -1) {
+                        this.createFoodCard(food);
+                    }
+                })
+            }
         });
 
         const htmlDom = document.getElementsByTagName("html")[0];
@@ -88,11 +90,16 @@ class Food {
         htmlDom.addEventListener("keydown", (e) => {
             if (e.keyCode === 70) {
                 if (this.hasOpenedCard()) {
-                    console.log('pressed F');
+                    const favButton = this.activeCard.dom.querySelector('.favButton');
+                    favButton.click();
                 }
             }
         });
         this.addLoadingImages();
+    }
+    resetFoodContainer() {
+        const foodContainer = document.getElementById('foodContainer');
+        foodContainer.innerHTML = '';
     }
     addLoadingImages() {
 
@@ -103,33 +110,98 @@ class Food {
         userInfoElement.appendChild(image);
         foodContainer.appendChild(imageClone);
     }
-    resetFoodContainer() {
-        const foodContainer = document.getElementById('foodContainer');
-        foodContainer.innerHTML = '';
-    }
     createImageLoader() {
         const image = document.createElement('img');
         image.setAttribute('src', '/images/loading.svg');
         return image;
     }
+    addFav(foodId) {
+        let findIndex = this.favFoodsIdList.indexOf(foodId);
+        if (findIndex === -1) {
+            this.favFoodsIdList.push(foodId);
+            this.writeFavFoodIdListToStorage();
+        }
+    }
+    removeFav(foodId) {
+        let findIndex = this.favFoodsIdList.indexOf(foodId);
+        if (findIndex > -1) {
+            this.favFoodsIdList.splice(findIndex, 1);
+            this.writeFavFoodIdListToStorage();
+        }
+    }
+    readFavFoodIdListFromStorage() {
+        const foodIdList = JSON.parse(localStorage.getItem("favFoodsIdList"));
+        if (foodIdList && foodIdList.length > 0) {
+            this.favFoodsIdList = foodIdList;
+        }
+    }
+    writeFavFoodIdListToStorage() {
+        localStorage.setItem("favFoodsIdList", JSON.stringify(this.favFoodsIdList));
+    }
 
     disableActiveCard() {
         if (this.hasOpenedCard()) {
-            const activeCard = this.activeCardDom;
+            const activeCard = this.activeCard.dom;
             const foodContainer = document.getElementById('foodContainer');
             foodContainer.classList.remove('showCardDetail');
             activeCard.classList.remove('active');
+            const cardBody = activeCard.querySelector('.cardBody');
+            cardBody.innerText = '';
             this.hasActiveCard = false;
-            this.activeCardDom = "";
+            this.activeCard.dom = "";
+            this.activeCard.id = 0;
         }
     }
-    makeActiveCurrentCard = (cardDom) => {
+    makeActiveCurrentCard = (cardDom, id) => {
         cardDom.classList.add('active');
-        this.activeCardDom = cardDom;
+        this.activeCard.dom = cardDom;
+        this.activeCard.id = id;
         this.hasActiveCard = true;
+        if (this.isAddedFavById(id)) {
+            this.addRemoveFavButtonToActiveCard();
+        } else {
+            this.addFavButtonToActiveCard();
+        }
+    }
+    isAddedFavById(id) {
+        return this.favFoodsIdList.includes(id);
     }
     hasOpenedCard() {
         return this.hasActiveCard;
+    }
+    addFavButtonToActiveCard() {
+        if (this.hasOpenedCard()) {
+            const cardBody = this.activeCard.dom.querySelector('.cardBody');
+            cardBody.innerText = '';
+
+            const favButton = document.createElement('button');
+            favButton.innerText = 'Favorilere Ekle';
+            favButton.classList.add('success');
+            favButton.classList.add('favButton');
+            cardBody.append(favButton);
+            favButton.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this.addFav(this.activeCard.id);
+                this.addRemoveFavButtonToActiveCard();
+            });
+        }
+    }
+    addRemoveFavButtonToActiveCard() {
+        if (this.hasOpenedCard()) {
+            const cardBody = this.activeCard.dom.querySelector('.cardBody');
+            cardBody.innerText = '';
+
+            const favButton = document.createElement('button');
+            favButton.innerText = 'Favorilerden Çıkar';
+            favButton.classList.add('danger');
+            favButton.classList.add('favButton');
+            cardBody.append(favButton);
+            favButton.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this.removeFav(this.activeCard.id);
+                this.addFavButtonToActiveCard();
+            });
+        }
     }
     getUserInfo() {
         this.getDatasByUrl("https://jsonplaceholder.typicode.com/users/1")
@@ -146,7 +218,7 @@ class Food {
             .then(foods => {
                 this.resetFoodContainer();
                 foods.forEach(food => {
-                    let newFoodItem = { id: food.id, title: food.title, isFav: false };
+                    let newFoodItem = { id: food.id, title: food.title };
                     this.foods.push(newFoodItem);
                     this.createFoodCard(newFoodItem);
                 })
@@ -175,138 +247,3 @@ class Food {
 }
 
 const food = new Food();
-
-
-//  const htmlDom = document.getElementsByTagName("html")[0];
-//  const searchInputDom = document.getElementById('searchInput');
-//  const foodContainerDom = document.getElementById("foodContainer");
-//  htmlDom.addEventListener("keydown", (e) => {
-//      if (e.keyCode === 70) {
-//          if (isActiveCard()) {
-//              console.log('added fav');
-//          } else {
-//              console.log('not found active card');
-//          }
-//      }
-//  });
-//  htmlDom.addEventListener("click", (e) => {
-//      disableActiveCard();
-//  });
-//  searchInputDom.addEventListener("keydown", (e) => {
-//      e.stopPropagation();
-//  });
-
-//  const createLoadingImageDom = () => {
-//      const image = document.createElement('img');
-//      image.setAttribute('src', '/images/loading.svg');
-//      return image;
-//  }
-
-//  const disableActiveCard = () => {
-//      if (isActiveCard()) {
-//          const activeCard = getActiveCard();
-//          foodContainerDom.classList.remove('showCardDetail');
-//          activeCard.classList.remove('active');
-//          console.log("disabled active card");
-//      }
-//  }
-//  const getActiveCard = () => {
-//      const activeCard = document.querySelector(".card.active");
-//      return activeCard;
-//  }
-//  const getCardId = (cardElement) => {
-
-//  }
-//  const isActiveCard = () => {
-//      const activeCard = document.querySelector(".card.active");
-//      return activeCard === null ? false : true;
-//  }
-
-//  const getDatasByUrl = (url) => {
-//      return new Promise(async(resolve, reject) => {
-//          try {
-
-//              let response = await fetch(url);
-//              if (response.ok) {
-//                  resolve(response.json());
-//              } else {
-//                  reject(`fetching failed - error: ${response.status} ${response.statusText}`);
-//              }
-
-//          } catch (error) {
-//              reject(error);
-//          }
-//      })
-//  };
-
-//  getDatasByUrl("https://jsonplaceholder.typicode.com/users/1")
-//      .then(data => {
-//          const userInfoDom = document.getElementById("userInfo");
-//          userInfoDom.innerText = `Merhaba, ${data.name}`;
-//      })
-//      .catch(error => {
-//          console.error(error);
-//      });
-
-//  var b = getDatasByUrl("https://jsonplaceholder.typicode.com/todos")
-//      .then(data => {
-//          return data.map(food => {
-//              return { title, id } = food;
-//          })
-//      })
-//      .then(foods => {
-//          foodContainerDom.innerText = '';
-//          foods.forEach(item => {
-//              const card = document.createElement('div');
-//              const cardHeader = document.createElement('div');
-//              const cardBody = document.createElement('div');
-//              const cardFooter = document.createElement('div');
-//              const favButton = document.createElement('button');
-//              const headerTitle = document.createElement('h4');
-//              card.classList.add('card');
-//              card.setAttribute("card-id", item.id);
-
-//              cardHeader.classList.add('cardHeader');
-//              cardBody.classList.add('cardBody');
-//              cardFooter.classList.add('cardFooter');
-//              favButton.classList.add('addFavButton');
-//              favButton.innerText = 'Favorilere Ekle';
-//              headerTitle.innerText = item.title;
-//              cardHeader.appendChild(headerTitle);
-//              cardBody.appendChild(favButton);
-//              card.appendChild(cardHeader);
-//              card.appendChild(cardBody);
-//              card.appendChild(cardFooter);
-
-
-//              card.addEventListener("click", (e) => {
-//                  e.stopPropagation();
-//                  const activeCard = document.querySelector(".card.active");
-//                  if (activeCard === null) {
-//                      foodContainerDom.classList.add('showCardDetail');
-//                      var target = e.target;
-//                      while (target) {
-//                          if (target.className === 'card') {
-//                              target.classList.add('active');
-//                              break;
-//                          } else {
-//                              target = target.parentNode;
-//                          }
-//                      }
-//                  } else {
-//                      disableActiveCard();
-//                  }
-//              });
-
-
-//              favButton.addEventListener("click", (e) => {
-//                  e.stopPropagation();
-//                  console.log("clicked button");
-//              });
-
-//              foodContainerDom.appendChild(card);
-//          })
-//      })
-//      .catch(error => {
-//          console.error(error);
-//      });

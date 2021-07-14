@@ -37,7 +37,7 @@ body {
     font-size: .8rem;
 }
 
-.card .addFavButton {
+.card .favButton {
     padding: 10px;
     width: 100%;
     display: none;
@@ -47,19 +47,19 @@ body {
     color: #fff;
 }
 
-.addFavButton.danger {
+.favButton.danger {
     background: #ff1b1b;
 }
 
-.addFavButton.danger:hover {
+.favButton.danger:hover {
     background: #f11313;
 }
 
-.addFavButton.success {
+.favButton.success {
     background: #19ce4f;
 }
 
-.addFavButton.success:hover {
+.favButton.success:hover {
     background: #05c13d;
 }
 
@@ -77,6 +77,7 @@ body {
     padding-bottom: 10px;
     z-index: 1000;
     padding: 3rem;
+    box-shadow: 0px 3px 3px #b3b3b3;
 }
 
 #foodContainer>.card.active .cardHeader {
@@ -85,6 +86,6 @@ body {
     line-height: 1.6em;
 }
 
-#foodContainer>.card.active .addFavButton {
+#foodContainer>.card.active .favButton {
     display: block;
 }
