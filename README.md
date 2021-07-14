@@ -1,3 +1,15 @@
+## Ekran Görüntüleri
+Yemek Kartları
+<img src="images/food-cards.PNG">
+
+Bir Karta tıklandığında;
+<img src="images/click-food-card-item.PNG">
+
+Favoriye Ekle butonuna tıklandığında ya da klavyeden "F" tuşuna basıldığında;
+<img src="images/click-fav-button-or-f-press.PNG">
+
+-----  
+
 ### ODEV ONCESI
 Eğer bu repoyu kullanarak kendi bilgisayarinizda development yapmak isterseniz sirasiyla,
 1) Repoyu clonelayin
